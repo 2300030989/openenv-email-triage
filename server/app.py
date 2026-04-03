@@ -1,5 +1,11 @@
 import gradio as gr
 import os
+import sys
+import os
+
+# Add parent directory to sys.path so we can import from the root
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from baseline import get_client, run_task
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
@@ -117,7 +123,11 @@ with gr.Blocks(title="OpenEnv: Email Triage Benchmark", theme=gr.themes.Soft()) 
         outputs=[output_markdown]
     )
 
-if __name__ == "__main__":
+def main():
     # Hugging Face Spaces uses port 7860 by default
+    global app
     app = gr.mount_gradio_app(app, demo, path="/")
     uvicorn.run(app, host="0.0.0.0", port=7860)
+
+if __name__ == "__main__":
+    main()
