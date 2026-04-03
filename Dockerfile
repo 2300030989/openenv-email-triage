@@ -7,10 +7,11 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy dependency files first for caching
-# We use a wildcard to avoid failing if uv.lock is missing from the context.
-# Note: uv.loc[k] is a trick to make the copy optional.
-COPY pyproject.toml uv.loc[k] ./
+# Copy dependency files and package metadata first
+COPY pyproject.toml uv.loc[k] README.md ./
+
+# Copy the server directory (required by setuptools for package discovery)
+COPY server/ ./server/
 
 # Install dependencies using uv.
 # We skip the lockfile check if it's not present to ensure the build continues.
