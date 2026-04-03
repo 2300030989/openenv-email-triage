@@ -2,9 +2,49 @@ import gradio as gr
 import os
 from baseline import get_client, run_task
 from dotenv import load_dotenv
+from fastapi import FastAPI, Request
+from email_env import EmailEnv
+from schema import Action as PydanticAction
+import uvicorn
 
 load_dotenv()
 
+# --- REST API Implementation for OpenEnv Compliance ---
+app = FastAPI()
+# Global environment instance for API calls
+global_env = EmailEnv(task_id="easy")
+
+@app.post("/reset")
+async def reset_env(request: Request):
+    # Some validators might send a seed in the JSON body
+    seed = None
+    try:
+        body = await request.json()
+        seed = body.get("seed")
+    except:
+        pass
+    obs = global_env.reset(seed=seed)
+    return obs.model_dump()
+
+@app.post("/step")
+async def step_env(action: PydanticAction):
+    obs, reward, done, info = global_env.step(action)
+    return {
+        "observation": obs.model_dump(),
+        "reward": reward.model_dump(),
+        "done": done,
+        "info": info
+    }
+
+@app.post("/state")
+async def get_state():
+    return global_env.state().model_dump()
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+# --- Gradio UI Implementation ---
 def run_evaluation_generator(num_trials):
     try:
         client, model = get_client()
@@ -78,4 +118,6 @@ with gr.Blocks(title="OpenEnv: Email Triage Benchmark", theme=gr.themes.Soft()) 
     )
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860)
+    # Hugging Face Spaces uses port 7860 by default
+    app = gr.mount_gradio_app(app, demo, path="/")
+    uvicorn.run(app, host="0.0.0.0", port=7860)

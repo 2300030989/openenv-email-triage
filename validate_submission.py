@@ -50,6 +50,29 @@ def validate():
         print(f"FAIL: API Compliance error: {e}")
         sys.exit(1)
 
+    # 4. Check REST API (Simulation)
+    print("\nChecking if REST API endpoints are defined...")
+    from app import app as fastapi_app
+    from fastapi.testclient import TestClient
+    
+    client = TestClient(fastapi_app)
+    try:
+        response = client.post("/reset", json={})
+        if response.status_code == 200:
+            print("OK: POST /reset responds with 200")
+        else:
+            print(f"FAIL: POST /reset returned {response.status_code}")
+            
+        response = client.post("/state")
+        if response.status_code == 200:
+            print("OK: POST /state responds with 200")
+        else:
+            print(f"FAIL: POST /state returned {response.status_code}")
+            
+        print("✅ REST API structure is ready for Hugging Face Space")
+    except Exception as e:
+        print(f"FAIL: REST API test error: {e}")
+
     # 4. Check Environment Variables
     required_vars = ["API_BASE_URL", "MODEL_NAME", "HF_TOKEN"]
     for v in required_vars:

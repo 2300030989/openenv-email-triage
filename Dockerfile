@@ -21,5 +21,5 @@ ENV PYTHONUNBUFFERED=1
 ENV GRADIO_SERVER_NAME="0.0.0.0"
 ENV GRADIO_SERVER_PORT=7860
 
-# Run the Gradio app by default for Hugging Face Spaces
+# Run the app via uvicorn (which handles both FastAPI and Gradio)
 CMD ["python", "app.py"]
