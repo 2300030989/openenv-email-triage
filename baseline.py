@@ -16,7 +16,7 @@ def get_client():
         return OpenAI(
             api_key=groq_api_key,
             base_url="https://api.groq.com/openai/v1"
-        ), "llama-3.3-70b-versatile"
+        ), "llama3-8b-8192"
 
     # Fallback to OpenAI
     openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -44,8 +44,15 @@ def get_action_from_llm(client: OpenAI, model: str, observation_dict: dict, task
     If no specific email_id is provided for an action, assume it applies to the most relevant email based on the task.
     If you cannot determine a valid action, use {{"action_type": "wait"}}.
     
-    Current Observation:
-    {json.dumps(observation_dict, indent=2)}
+    # Token optimization: Remove redundant info from observation
+    optimized_obs = {
+        "inbox": [{"id": e["id"], "sender": e["sender"], "subject": e["subject"]} for e in observation_dict["inbox"]],
+        "unread_count": observation_dict["unread_count"],
+        "calendar_events": observation_dict["calendar_events"]
+    }
+    
+    Current Observation (Summarized):
+    {json.dumps(optimized_obs, indent=2)}
     
     ---
     """
