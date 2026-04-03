@@ -8,7 +8,7 @@ def validate():
     print("--- Starting Pre-Submission Validation ---")
     
     # 1. Check Files
-    required_files = ["inference.py", "openenv.yaml", "Dockerfile", "requirements.txt"]
+    required_files = ["inference.py", "openenv.yaml", "Dockerfile", "requirements.txt", "pyproject.toml"]
     for f in required_files:
         if os.path.exists(f):
             print(f"OK: Found {f}")
