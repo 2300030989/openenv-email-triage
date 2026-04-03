@@ -1,0 +1,24 @@
+name: "Email Triage & Calendar Management"
+version: "1.0.0"
+author: "AI Assistant"
+description: "A real-world environment for an AI agent to learn how to manage an inbox and schedule calendar events."
+tags: ["productivity", "nlp", "agentic"]
+tasks:
+  - id: "easy"
+    name: "Newsletter Cleanup"
+    difficulty: "Easy"
+    objective: "Archive 5 newsletter emails to declutter the inbox."
+  - id: "medium"
+    name: "Meeting Coordination"
+    difficulty: "Medium"
+    objective: "Reply to a meeting request and create a corresponding calendar event."
+  - id: "hard"
+    name: "Support Escalation"
+    difficulty: "Hard"
+    objective: "Identify an urgent support ticket, escalate to engineering, and update the customer."
+action_space:
+  type: "Discrete"
+  actions: ["archive", "reply", "forward", "mark_urgent", "create_calendar_event", "wait"]
+observation_space:
+  type: "Box"
+  fields: ["inbox", "unread_count", "calendar_events"]
