@@ -1,25 +1,27 @@
 # Use an official Python runtime as a parent image
 FROM python:3.12-slim
 
+# Install uv for fast package management
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the requirements file into the container at /app
-COPY requirements.txt .
+# Copy dependency files first for caching
+COPY pyproject.toml uv.lock ./
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies using uv
+RUN uv sync --frozen
 
-# Copy the current directory contents into the container at /app
+# Copy the rest of the application code
 COPY . .
 
 # Expose port 7860 for Hugging Face Spaces
 EXPOSE 7860
 
-# Define environment variable
+# Define environment variables
 ENV PYTHONUNBUFFERED=1
-ENV GRADIO_SERVER_NAME="0.0.0.0"
-ENV GRADIO_SERVER_PORT=7860
+ENV PATH="/app/.venv/bin:$PATH"
 
-# Run the app via uvicorn (which handles both FastAPI and Gradio)
+# Run the app via the entrypoint defined in pyproject.toml
 CMD ["python", "server/app.py"]
