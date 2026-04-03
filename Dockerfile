@@ -10,9 +10,6 @@ WORKDIR /app
 # Copy dependency files and package metadata first
 COPY pyproject.toml uv.loc[k] README.md ./
 
-# Copy the server directory (required by setuptools for package discovery)
-COPY server/ ./server/
-
 # Install dependencies using uv.
 # We skip the lockfile check if it's not present to ensure the build continues.
 RUN if [ -f uv.lock ]; then \
