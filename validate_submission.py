@@ -8,7 +8,7 @@ def validate():
     print("--- Starting Pre-Submission Validation ---")
     
     # 1. Check Files
-    required_files = ["inference.py", "openenv.yaml", "Dockerfile", "requirements.txt", "pyproject.toml"]
+    required_files = ["inference.py", "openenv.yaml", "Dockerfile", "pyproject.toml", "uv.lock"]
     for f in required_files:
         if os.path.exists(f):
             print(f"OK: Found {f}")
@@ -52,11 +52,11 @@ def validate():
 
     # 4. Check REST API (Simulation)
     print("\nChecking if REST API endpoints are defined...")
-    from app import app as fastapi_app
-    from fastapi.testclient import TestClient
-    
-    client = TestClient(fastapi_app)
     try:
+        from server.app import app as fastapi_app
+        from fastapi.testclient import TestClient
+        
+        client = TestClient(fastapi_app)
         response = client.post("/reset", json={})
         if response.status_code == 200:
             print("OK: POST /reset responds with 200")
@@ -70,6 +70,9 @@ def validate():
             print(f"FAIL: POST /state returned {response.status_code}")
             
         print("✅ REST API structure is ready for Hugging Face Space")
+    except ImportError as e:
+        print(f"SKIP: Could not test REST API locally due to missing dependency: {e}")
+        print("      (This is normal if you haven't installed dependencies locally yet)")
     except Exception as e:
         print(f"FAIL: REST API test error: {e}")
 

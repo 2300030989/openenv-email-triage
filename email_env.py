@@ -102,6 +102,11 @@ class EmailEnv(OpenEnv):
             last_action_status="ready"
         )
 
+    @staticmethod
+    def _to_open_interval(score: float, eps: float = 1e-6) -> float:
+        """Clamp any score to strict open interval (0, 1)."""
+        return min(1.0 - eps, max(eps, float(score)))
+
     def step(self, action: PydanticAction) -> Tuple[Observation, Reward, bool, Dict[str, Any]]:
         self.current_step += 1
         reward_val = 0.0
@@ -140,20 +145,21 @@ class EmailEnv(OpenEnv):
 
         # Task Specific Grading & Termination
         done = self.current_step >= self.max_steps
-        score = self.grade()
+        raw_score = self._raw_grade()
+        score = self._to_open_interval(raw_score)
         
-        if score >= 1.0:
+        if raw_score >= 1.0:
             done = True
             reward_val += 5.0 # Completion bonus
             reason = "Task completed successfully!"
-            partial_progress = 1.0
+            partial_progress = self._to_open_interval(1.0)
         else:
             partial_progress = score
 
         return self.state(), Reward(value=reward_val, reason=reason, partial_progress=partial_progress), done, {"score": score}
 
-    def grade(self) -> float:
-        """Programmatic grader for the current task."""
+    def _raw_grade(self) -> float:
+        """Task grader before submission-range clamping."""
         if self.task_id == "easy":
             # Grade: How many newsletters archived out of 5
             newsletters = [f"news_{i}" for i in range(5)]
@@ -174,6 +180,10 @@ class EmailEnv(OpenEnv):
             return (0.33 if is_marked else 0.0) + (0.33 if is_forwarded else 0.0) + (0.34 if is_replied else 0.0)
         
         return 0.0
+
+    def grade(self) -> float:
+        """Programmatic grader for submission: always strictly in (0, 1)."""
+        return self._to_open_interval(self._raw_grade())
 
     @property
     def metadata(self) -> Dict[str, Any]:
